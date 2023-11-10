@@ -1,0 +1,79 @@
+ProductName,Price,Quantity
+Apples,1,100
+Bananas,0.5,200
+Oranges,0.65,150
+Potatoes,0.15,300
+Carrots,0.25,400
+Bread,2,500
+Milk,3,600
+Butter,3,700
+Cheese,4.5,800
+Chicken,5,900
+Beef,6,1000
+Fish,7,1100
+Eggs,2,1200
+Naan,4,1300
+Canned Beans,2,1400
+Pasta,3,1500
+Rice,3,1600
+Broccoli,0.25,1700
+Spinach,2,1800
+Grapes,3,1900
+Strawberries,5,2000
+Blueberries,4,2100
+Avocados,2,2200
+Peanut Butter,5,2300
+Almonds,7,2400
+Chocolate Milk,5,2500
+Tea,3.5,2600
+Cocoa Powder,2.5,2700
+Sugar,5.5,2800
+Flour,1,2900
+Olive Oil,5,3000
+CheezIts,4,300
+PopTarts,7,400
+Wheaties,3,500
+Lays,3.5,600
+Doritos,2.5,700
+Cheetos,4,800
+Sour Patch Kids,3.5,900
+Hershey's Chocolate Bar,2,1000
+Pepsi,1.5,1100
+Coca-Cola,1.5,1200
+Sprite,1.5,1300
+Fanta,1.5,1400
+Mountain Dew,1.5,1500
+Dr. Pepper,1.5,1600
+Arizona Tea,3.5,1700
+Snapple,2.5,1800
+Munchies,5,1900
+Ruffles,3.5,2000
+Pringles,2.5,2100
+Oreos,4,2200
+Nature Valley,3,2300
+Kellogg's,3.5,2400
+Capri Sun,2.5,2500
+Turkey Slices,5.5,2600
+Ham Slices,5.5,200
+Heinz Ketchup,3,300
+French's Mustard,2,400
+Hellmann's Mayonnaise,3.5,500
+Campbell's Soup,2.5,600
+Quaker Oats,3,700
+Kellogg's Corn Flakes,2.5,800
+Aunt Jemima Syrup,3.5,900
+Betty Crocker Cake Mix,2,1000
+Hershey's Syrup,2.5,1100
+Skippy Peanut Butter,3,1200
+Smucker's Jelly,2.5,1300
+Planters Peanuts,3.5,1400
+Tostitos,2.5,1500
+Ritz Crackers,2,1600
+Lucky Charms,3.5,1700
+Dunkin' Donuts Coffee,5,1800
+Nutella,4.5,1900
+KitKat,2.5,2000
+Red Bull,2,2100
+Monster Energy,2.5,2200
+5-hour Energy,3,2300
+Starbucks Coffee,4,2400
