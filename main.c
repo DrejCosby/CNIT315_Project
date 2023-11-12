@@ -3,9 +3,12 @@
 #include <string.h>
 #include <stdbool.h>
 #include "inventory.h"
+#include "gui.h"
 
-int main(){
+
+int main(int argc, char *argv[]){
     readCSV();
+    mainGUI(argc, argv);
     printInventory(); //testing to see if I copied everything right
 
 
