@@ -42,12 +42,7 @@ void readCSV(){
     printf("Successfully copied %d records to Inventory from csv\n", successfulCopies);
 }
 
-void printInventory(){
-    for(int i = 0; i < itemCount; i++){
-        printf("Name: %s, Price: %.2f, Quantity: %d\n", Inventory[i].name, Inventory[i].price, Inventory[i].quantity);
-    }
-}
-
+//free the memory that was allocated for each of the names for the items
 void cleanupInventory() {
     for(int i = 0; i < itemCount; i++){
         free(Inventory[i].name);

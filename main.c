@@ -7,9 +7,8 @@
 
 
 int main(int argc, char *argv[]){
-    readCSV();
+    readCSV(); //read the csv and copy all items into Inventory array struct
     mainGUI(argc, argv);
-    printInventory(); //testing to see if I copied everything right
 
 
     cleanupInventory();//keep this function as the last thing to execute as it frees up the memory of the inventory names
