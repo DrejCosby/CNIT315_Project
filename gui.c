@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <gtk/gtk.h>
 #include "gui.h"
+#include "inventory.h"
+
+extern int itemCount;
+extern InvItem Inventory[];
 
 void browseGUI();
 void cartGUI();
@@ -90,6 +94,10 @@ void browseGUI(){
     GtkWidget *button;
     GtkWidget *vbox;
     GtkWidget *hbox;
+    GtkCellRenderer *renderer;
+    GtkTreeViewColumn *column;
+    GtkListStore *store;
+    GtkTreeIter iter;
 
     // Create a new window for the inventory page
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -100,17 +108,43 @@ void browseGUI(){
     gtk_css_provider_load_from_data(provider, "* { background-color: peachpuff; }", -1, NULL);
     gtk_style_context_add_provider(gtk_widget_get_style_context(window), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-   vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-   gtk_container_add(GTK_CONTAINER(window), vbox);
+    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
 
-   hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-   // Create a back button and add it to the left of the hbox
-   button = gtk_button_new_with_label("<---");
+    // Create a back button and add it to the left of the hbox
+    button = gtk_button_new_with_label("<---");
     g_signal_connect(button, "clicked", G_CALLBACK(on_button_clicked), window);
-   gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
 
+    // Create a list store and add it to the tree view
+    store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT);
+    list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+    gtk_box_pack_start(GTK_BOX(vbox), list, TRUE, TRUE, 0);
+
+    // Add columns to the tree view
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Name", renderer, "text", 0, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Price", renderer, "text", 1, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Quantity", renderer, "text", 2, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+    // Add data to the list store
+    for (int i = 0; i < itemCount; i++) {
+        char price[50];
+        sprintf(price, "$%.2f", Inventory[i].price);
+
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0, Inventory[i].name, 1, price, 2, Inventory[i].quantity, -1);
+    }
    // Show the window
    gtk_widget_show_all(window);
 }
