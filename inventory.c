@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include "inventory.h"
 
-int itemCount = 0; // Initialize itemCount to 0
+int InvitemCount = 0; // Initialize InvitemCount to 0
 InvItem Inventory[MAX_ITEMS]; //array to store the inventory
 
 //reads the inventory items csv and populates the InvItem struct with that data
@@ -35,7 +35,7 @@ void readCSV(){
         float price = atof(strtok(NULL,","));
         int quantity = atoi(strtok(NULL, ","));
         InvItem newItem = {name, price, quantity};
-        Inventory[itemCount++] = newItem;
+        Inventory[InvitemCount++] = newItem;
         successfulCopies++;
     }
     fclose(file);
@@ -44,7 +44,7 @@ void readCSV(){
 
 //free the memory that was allocated for each of the names for the items
 void cleanupInventory() {
-    for(int i = 0; i < itemCount; i++){
+    for(int i = 0; i < InvitemCount; i++){
         free(Inventory[i].name);
     }
 }

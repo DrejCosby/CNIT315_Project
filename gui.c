@@ -5,8 +5,9 @@
 #include <gtk/gtk.h>
 #include "gui.h"
 #include "inventory.h"
+#include "cart_checkout.h"
 
-extern int itemCount;
+extern int InvitemCount;
 extern InvItem Inventory[];
 
 void browseGUI();
@@ -146,9 +147,8 @@ void browseGUI(){
     renderer = gtk_cell_renderer_text_new();
     g_object_set(renderer, "editable", TRUE, NULL);
     g_signal_connect(renderer, "edited", G_CALLBACK(on_quantity_edited), store);
-    column = gtk_tree_view_column_new_with_attributes("Quantity", renderer, "text", 4, NULL);
+    column = gtk_tree_view_column_new_with_attributes("Quantity", renderer, "text", 2, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
-
 
     // Add "Add to cart" column
     renderer = gtk_cell_renderer_toggle_new();
@@ -160,12 +160,12 @@ void browseGUI(){
 
 
     // Add data to the list store
-    for (int i = 0; i < itemCount; i++) {
+    for (int i = 0; i < InvitemCount; i++) {
         char price[50];
         sprintf(price, "$%.2f", Inventory[i].price);
 
         gtk_list_store_append(store, &iter);
-        gtk_list_store_set(store, &iter, 0, Inventory[i].name, 1, price, 2, Inventory[i].quantity, -1);
+        gtk_list_store_set(store, &iter, 0, Inventory[i].name, 1, price, 2, 0, 3, FALSE, -1);
     }
    // Show the window
    gtk_widget_show_all(window);
@@ -178,6 +178,10 @@ void cartGUI(){
     GtkWidget *button;
     GtkWidget *vbox;
     GtkWidget *hbox;
+    GtkCellRenderer *renderer;
+    GtkTreeViewColumn *column;
+    GtkListStore *store;
+    GtkTreeIter iter;
 
     // Create a new window for the inventory page
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -188,20 +192,58 @@ void cartGUI(){
     gtk_css_provider_load_from_data(provider, "* { background-color: peachpuff; }", -1, NULL);
     gtk_style_context_add_provider(gtk_widget_get_style_context(window), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-   vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-   gtk_container_add(GTK_CONTAINER(window), vbox);
+    vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_container_add(GTK_CONTAINER(window), vbox);
 
-   hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-   gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+    gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, FALSE, 0);
 
-   // Create a back button and add it to the left of the hbox
-   button = gtk_button_new_with_label("<---");
+    // Create a back button and add it to the left of the hbox
+    button = gtk_button_new_with_label("<---");
     g_signal_connect(button, "clicked", G_CALLBACK(on_button_clicked), window);
-   gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
 
+    // Create a list store and add it to the tree view
+    store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+
+    // Create a scrolled window and add the list to it
+    GtkWidget *scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+    gtk_container_add(GTK_CONTAINER(scrolled_window), list);
+
+    // Add the scrolled window to the vbox
+    gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
+
+    // Add Name column to tree
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Name", renderer, "text", 0, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+    //Quantity column
+    renderer = gtk_cell_renderer_text_new();
+    g_object_set(renderer, "xalign", 1.0, NULL);
+    column = gtk_tree_view_column_new_with_attributes("Quantity", renderer, "text", 1, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+    //Price column
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Price", renderer, "text", 2, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
+
+    // Add data to the list store
+    for (int i = 0; i < CartitemCount; i++) {
+        char price[50];
+        char quantity_str[50];
+        sprintf(quantity_str, "%d @", Cart[i].quantity);
+        sprintf(price, "$%.2f", Cart[i].price);
+
+        gtk_list_store_append(store, &iter);
+        gtk_list_store_set(store, &iter, 0, Cart[i].name, 1, quantity_str, 2, price , -1);
+    }
    // Show the window
-   gtk_widget_show_all(window);
-}
+   gtk_widget_show_all(window);}
+
 
 static void on_button_clicked(GtkWidget *widget, gpointer data)
 {
@@ -219,11 +261,8 @@ static void on_button_clicked(GtkWidget *widget, gpointer data)
     else if (strcmp(gtk_button_get_label(GTK_BUTTON(widget)), "<---") == 0){
         GtkWidget *window = (GtkWidget *)data;
 
-        // Close the browse inventory window
+        // Close the current window
         gtk_widget_destroy(window);
-
-        // Open the main GUI page
-        mainGUI(global_argc, global_argv);
     }
 }
 
@@ -236,29 +275,38 @@ void on_quantity_edited(GtkCellRendererText *cell_renderer, gchar *path_str, gch
     gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, path);
 
     // Set new quantity
-    gtk_list_store_set(store, &iter, 4, new_text, -1);
+    int new_quantity = atoi(new_text);
+    gtk_list_store_set(store, &iter, 2, new_quantity, -1);
 
-    // Do something with the new quantity (new_text)
 
     gtk_tree_path_free(path);
 }
 
-// Signal handler for the "toggled" signal of the "Add to cart" buttons
 void on_add_to_cart_toggled(GtkCellRendererToggle *cell_renderer, gchar *path_str, GtkListStore *store)
 {
     GtkTreeIter iter;
     GtkTreePath *path = gtk_tree_path_new_from_string(path_str);
     gboolean add_to_cart;
+    gchar *name;
+    gchar *price;
+    gchar *quantity_str;
+    gint quantity;
 
     // Get toggled iter
     gtk_tree_model_get_iter(GTK_TREE_MODEL(store), &iter, path);
-    gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, 3, &add_to_cart, -1);
+    gtk_tree_model_get(GTK_TREE_MODEL(store), &iter, 0, &name, 1, &price, 2, &quantity, 3, &add_to_cart, -1);
+
 
     // Toggle "Add to cart" button
     add_to_cart = !add_to_cart;
     gtk_list_store_set(store, &iter, 3, add_to_cart, -1);
 
-    // Do something with the "Add to cart" button state (add_to_cart)
+    // If the item is added to the cart, call addToCart function (get rid of all items that may be chekced that are 0)
+    if (add_to_cart) {
+        if (quantity != 0) {
+            addToCart(name, atof(price+1), quantity); // price+1 to skip the dollar sign
+        }
+    }
 
     gtk_tree_path_free(path);
 }
