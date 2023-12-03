@@ -3,6 +3,7 @@
 #include <string.h>
 #include <curl/curl.h>
 #include <json-c/json.h>
+#include <gtk/gtk.h>
 
 
 /* Compile with this command: gcc -o DistanceMatrixAPI DistanceMatrixAPI.c -lcurl -ljson-c */
@@ -10,9 +11,8 @@
 /* Takes a city as user input and return estimated drive time between it and West Lafayette, IN
 Works for most cities I've tried so far but there have been a few exceptions. */
 
-/* Also I had a main in this file initially and it just contained what DestinationRequest()
-function contains which has caused an error that I haven't solved yet. */
-
+// Global variable to store the entered destination
+gchar *entered_destination = NULL;
 
 // Struct to store duration information
 struct DurationInfo {
@@ -20,6 +20,56 @@ struct DurationInfo {
     int value;
 };
 
+void on_entry_activate(GtkEntry *entry, gpointer user_data) {
+    gchar **destination = (gchar **)user_data;
+    g_free(*destination);  // Free previous entry if any
+    *destination = g_strdup(gtk_entry_get_text(entry));
+    g_print("Entered: %s\n", *destination);
+}
+
+
+void on_button_clicked(GtkButton *button, gpointer user_data) {
+    GtkWidget *window = GTK_WIDGET(user_data);
+    gtk_widget_destroy(window);
+    gtk_main_quit();
+}
+
+void DestinationGUI(gchar **destination) {
+    GtkWidget *window;
+    GtkWidget *label;
+    GtkWidget *entry;
+    GtkWidget *box;  
+    GtkWidget *button;
+
+    gtk_init(NULL, NULL);
+
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window), "Destination Input");
+    gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
+    g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+
+    box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+
+    label = gtk_label_new("Enter a destination:");
+    entry = gtk_entry_new();
+
+    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)destination);
+
+    button = gtk_button_new_with_label("Enter");
+    g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(on_button_clicked), (gpointer)window);
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), button, FALSE, FALSE, 0);
+
+    gtk_container_add(GTK_CONTAINER(window), box);
+
+    gtk_widget_show_all(window);
+
+    gtk_main();
+}
+
+/* Start of API stuff*/
 size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t total_size = size * nmemb;
     struct DurationInfo *duration_info = (struct DurationInfo *)userp;
@@ -106,16 +156,22 @@ void get_travel_time(const char *destination) {
     curl_global_cleanup();
 }
 
-void DestinationRequest() { //Needs to be GUI
-    char destination[100];
 
-    // Get user input for the destination
-    printf("Enter the destination location: ");
-    fgets(destination, sizeof(destination), stdin);
 
-    // Remove the newline character from the input
-    destination[strcspn(destination, "\n")] = 0;
 
-    // Call the function to get travel time
-    get_travel_time(destination);
+
+
+/* Just testing of GUI*/
+int main(int argc, char *argv[]) {
+    DestinationGUI(&entered_destination);
+
+    // Use the 'entered_destination' variable after the GUI is closed
+    if (entered_destination != NULL) {
+        g_print("Destination after GUI closes: %s\n", entered_destination);
+
+        // Remember to free the memory allocated for entered_destination
+        g_free(entered_destination);
+    }
+
+    return 0;
 }
