@@ -11,8 +11,6 @@
 /* Takes a city as user input and return estimated drive time between it and West Lafayette, IN
 Works for most cities I've tried so far but there have been a few exceptions. */
 
-// Global variable to store the entered destination
-gchar *entered_destination = NULL;
 
 // Struct to store duration information
 struct DurationInfo {
@@ -28,7 +26,7 @@ void on_entry_activate(GtkEntry *entry, gpointer user_data) {
 }
 
 
-void on_button_clicked(GtkButton *button, gpointer user_data) {
+void on_button_clicked_(GtkButton *button, gpointer user_data) {
     GtkWidget *window = GTK_WIDGET(user_data);
     gtk_widget_destroy(window);
     gtk_main_quit();
@@ -56,7 +54,7 @@ void DestinationGUI(gchar **destination) {
     g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)destination);
 
     button = gtk_button_new_with_label("Enter");
-    g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(on_button_clicked), (gpointer)window);
+    g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(on_button_clicked_), (gpointer)window);
 
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
@@ -65,8 +63,6 @@ void DestinationGUI(gchar **destination) {
     gtk_container_add(GTK_CONTAINER(window), box);
 
     gtk_widget_show_all(window);
-
-    gtk_main();
 }
 
 /* Start of API stuff*/
@@ -161,7 +157,7 @@ void get_travel_time(const char *destination) {
 
 
 
-/* Just testing of GUI*/
+/*
 int main(int argc, char *argv[]) {
     DestinationGUI(&entered_destination);
 
@@ -175,3 +171,5 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+*/
+

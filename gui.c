@@ -6,6 +6,7 @@
 #include "gui.h"
 #include "inventory.h"
 #include "cart_checkout.h"
+#include "DistanceMatrixAPI.h"
 
 extern int InvitemCount;
 extern InvItem Inventory[];
@@ -18,6 +19,10 @@ void on_quantity_edited(GtkCellRendererText *cell_renderer, gchar *path_str, gch
 
 int global_argc;
 char **global_argv;
+double total_price = 0.0;
+GtkWidget *total_price_label;
+
+gchar *entered_destination = NULL;
 
 void mainGUI(int argc, char *argv[]){
     global_argc = argc;
@@ -182,6 +187,7 @@ void cartGUI(){
     GtkTreeViewColumn *column;
     GtkListStore *store;
     GtkTreeIter iter;
+    total_price_label = gtk_label_new(NULL);
 
     // Create a new window for the inventory page
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -204,7 +210,7 @@ void cartGUI(){
     gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
 
     // Create a list store and add it to the tree view
-    store = gtk_list_store_new(3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    store = gtk_list_store_new(4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
     list = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
 
     // Create a scrolled window and add the list to it
@@ -230,17 +236,36 @@ void cartGUI(){
     column = gtk_tree_view_column_new_with_attributes("Price", renderer, "text", 2, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
 
+    // Add "Total Price" column
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Total Price", renderer, "text", 3, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(list), column);
+
 
     // Add data to the list store
     for (int i = 0; i < CartitemCount; i++) {
         char price[50];
         char quantity_str[50];
+        char total_price[50];
         sprintf(quantity_str, "%d @", Cart[i].quantity);
         sprintf(price, "$%.2f", Cart[i].price);
-
+        sprintf(total_price, "$%.2f", Cart[i].price * Cart[i].quantity);
+    
         gtk_list_store_append(store, &iter);
-        gtk_list_store_set(store, &iter, 0, Cart[i].name, 1, quantity_str, 2, price , -1);
+        gtk_list_store_set(store, &iter, 0, Cart[i].name, 1, quantity_str, 2, price, 3, total_price, -1);
     }
+
+    GtkWidget *total_price_label = gtk_label_new(NULL);
+    char total_price_str[50];
+    sprintf(total_price_str, "Total Price: $%.2f", total_price);
+    gtk_label_set_text(GTK_LABEL(total_price_label), total_price_str);
+    gtk_box_pack_start(GTK_BOX(vbox), total_price_label, FALSE, FALSE, 0);
+
+    // Checkout button
+    button = gtk_button_new_with_label("Checkout");
+    g_signal_connect(button, "clicked", G_CALLBACK(on_button_clicked), "Checkout");
+    gtk_box_pack_end(GTK_BOX(vbox), button, FALSE, FALSE, 0);
+
    // Show the window
    gtk_widget_show_all(window);}
 
@@ -258,9 +283,18 @@ static void on_button_clicked(GtkWidget *widget, gpointer data)
     else if (strcmp((char *)data, "Exit") == 0) {
         gtk_main_quit();
     }
+    else if (strcmp((char *)data, "Checkout") == 0){
+        DestinationGUI(&entered_destination);
+        // Use the 'entered_destination' variable after the GUI is closed
+        if (entered_destination != NULL) {
+            g_print("Destination after GUI closes: %s\n", entered_destination);
+
+            // Remember to free the memory allocated for entered_destination
+            g_free(entered_destination);
+        }
+    }
     else if (strcmp(gtk_button_get_label(GTK_BUTTON(widget)), "<---") == 0){
         GtkWidget *window = (GtkWidget *)data;
-
         // Close the current window
         gtk_widget_destroy(window);
     }
@@ -305,6 +339,11 @@ void on_add_to_cart_toggled(GtkCellRendererToggle *cell_renderer, gchar *path_st
     if (add_to_cart) {
         if (quantity != 0) {
             addToCart(name, atof(price+1), quantity); // price+1 to skip the dollar sign
+            total_price += atof(price+1) * quantity;
+
+            char total_price_str[50];
+            sprintf(total_price_str, "Total Price: $%.2f", total_price);
+            gtk_label_set_text(GTK_LABEL(total_price_label), total_price_str);
         }
     }
 
