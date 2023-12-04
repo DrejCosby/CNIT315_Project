@@ -19,6 +19,7 @@ void on_quantity_edited(GtkCellRendererText *cell_renderer, gchar *path_str, gch
 
 int global_argc;
 char **global_argv;
+extern double total_price;
 double total_price = 0.0;
 GtkWidget *total_price_label;
 

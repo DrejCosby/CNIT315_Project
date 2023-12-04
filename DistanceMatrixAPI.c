@@ -5,6 +5,16 @@
 #include <json-c/json.h>
 #include <gtk/gtk.h>
 
+void confirmGUI();
+
+//address variables
+char name[100];
+char street_address[100];
+char city[50];
+char state[2];
+char zip[10];
+
+extern double total_price;
 
 /* Compile with this command: gcc -o DistanceMatrixAPI DistanceMatrixAPI.c -lcurl -ljson-c */
 
@@ -22,7 +32,17 @@ void on_entry_activate(GtkEntry *entry, gpointer user_data) {
     gchar **destination = (gchar **)user_data;
     g_free(*destination);  // Free previous entry if any
     *destination = g_strdup(gtk_entry_get_text(entry));
-    g_print("Entered: %s\n", *destination);
+
+    // Store the entered text in the address global variables
+    if (strcmp(user_data, "street_address") == 0) {
+        strcpy(street_address, *destination);
+    } else if (strcmp(user_data, "city") == 0) {
+        strcpy(city, *destination);
+    } else if (strcmp(user_data, "zip") == 0) {
+        strcpy(zip, *destination);
+    } else if (strcmp(user_data, "name") == 0){
+        strcpy(name, *destination);
+    }
 }
 
 
@@ -32,10 +52,9 @@ void on_button_clicked_(GtkButton *widget, gpointer data) {
         // Close the current window
         gtk_widget_destroy(window);
     }
-    
-    // GtkWidget *window = GTK_WIDGET(data);
-    // gtk_widget_destroy(window);
-    // gtk_main_quit();
+    else if (strcmp(gtk_button_get_label(GTK_BUTTON(widget)), "Order") == 0){
+        confirmGUI();
+    }
 }
 
 void DestinationGUI(gchar **destination) {
@@ -73,7 +92,7 @@ void DestinationGUI(gchar **destination) {
 
     label = gtk_label_new("Full Name:");
     entry = gtk_entry_new();
-
+    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)&name);
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
 
@@ -105,34 +124,36 @@ void DestinationGUI(gchar **destination) {
     gtk_label_set_markup(GTK_LABEL(label), "<span font='20' weight='bold'>Shipping:</span>");
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
 
+    // For Street Address
     label = gtk_label_new("Street Address:");
     entry = gtk_entry_new();
-
+    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)&street_address);
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
 
+    // For City
     label = gtk_label_new("City:");
     entry = gtk_entry_new();
-
+    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)&city);
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
 
+    // For State
     label = gtk_label_new("State: (XX)");
     entry = gtk_entry_new();
-
+    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)&state); // Assuming you have a 'state' variable
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
 
+    // For Zip
     label = gtk_label_new("Zip:");
     entry = gtk_entry_new();
-
-    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)destination);
-
-    button = gtk_button_new_with_label("Enter");
-    g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(on_button_clicked_), (gpointer)window);
-
+    g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)&zip);
     gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    button = gtk_button_new_with_label("Order");
+    g_signal_connect(G_OBJECT(button), "clicked", G_CALLBACK(on_button_clicked_), window);
     gtk_box_pack_start(GTK_BOX(box), button, FALSE, FALSE, 0);
 
     gtk_container_add(GTK_CONTAINER(window), box);
@@ -193,13 +214,16 @@ void get_travel_time(const char *destination) {
     curl = curl_easy_init();
 
     if (curl) {
+        char address[160];
         // Construct the API request URL
         char url[256];
         const char *api_key = "AIzaSyBEKS3cVPrNLTYYX6fUwtYbq0IgtEh1Svo"; // Replace with your actual API key
         const char *origin = "West+Lafayette,IN";
 
+        // Construct the address from the global variables
+        sprintf(address, "%s, %s, %s", street_address, city, zip);
         sprintf(url, "https://maps.googleapis.com/maps/api/distancematrix/json?origins=%s&destinations=%s&key=%s",
-                origin, destination, api_key);
+                origin, address, api_key);
 
         // Set the API request URL
         curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -227,3 +251,40 @@ void get_travel_time(const char *destination) {
     curl_global_cleanup();
 }
 
+void confirmGUI() {
+    GtkWidget *window;
+    GtkWidget *label;
+    GtkWidget *entry;
+    GtkWidget *box;  
+    GtkWidget *button;
+    GtkWidget *hbox;
+
+    gtk_init(NULL, NULL);
+
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_title(GTK_WINDOW(window), "Confimation");
+    gtk_window_set_default_size(GTK_WINDOW(window), 500, 500);
+
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, "* { background-color: peachpuff; }", -1, NULL);
+    gtk_style_context_add_provider(gtk_widget_get_style_context(window), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
+
+    // header
+    label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(label), "<span font='30' weight='bold'>Thank you for your order!</span>");
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+
+    label = gtk_label_new(NULL);
+    char total_price_str[50];
+    sprintf(total_price_str, "Total Price: $%.2f", total_price);
+    gtk_label_set_text(GTK_LABEL(label), total_price_str);
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+
+    
+
+    gtk_container_add(GTK_CONTAINER(window), box);
+    gtk_widget_show_all(window);
+}
