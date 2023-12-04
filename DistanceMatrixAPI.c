@@ -26,10 +26,16 @@ void on_entry_activate(GtkEntry *entry, gpointer user_data) {
 }
 
 
-void on_button_clicked_(GtkButton *button, gpointer user_data) {
-    GtkWidget *window = GTK_WIDGET(user_data);
-    gtk_widget_destroy(window);
-    gtk_main_quit();
+void on_button_clicked_(GtkButton *widget, gpointer data) {
+    if (strcmp(gtk_button_get_label(GTK_BUTTON(widget)), "<---") == 0){
+        GtkWidget *window = (GtkWidget *)data;
+        // Close the current window
+        gtk_widget_destroy(window);
+    }
+    
+    // GtkWidget *window = GTK_WIDGET(data);
+    // gtk_widget_destroy(window);
+    // gtk_main_quit();
 }
 
 void DestinationGUI(gchar **destination) {
@@ -38,17 +44,86 @@ void DestinationGUI(gchar **destination) {
     GtkWidget *entry;
     GtkWidget *box;  
     GtkWidget *button;
+    GtkWidget *hbox;
 
     gtk_init(NULL, NULL);
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_title(GTK_WINDOW(window), "Destination Input");
-    gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
-    g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    gtk_window_set_title(GTK_WINDOW(window), "Checkout");
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+
+    GtkCssProvider *provider = gtk_css_provider_new();
+    gtk_css_provider_load_from_data(provider, "* { background-color: peachpuff; }", -1, NULL);
+    gtk_style_context_add_provider(gtk_widget_get_style_context(window), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
 
-    label = gtk_label_new("Enter a destination:");
+
+    // Create a back button and add it to the left of the hbox
+    button = gtk_button_new_with_label("<---");
+    g_signal_connect(button, "clicked", G_CALLBACK(on_button_clicked_), window);
+    gtk_box_pack_start(GTK_BOX(hbox), button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), hbox, FALSE, FALSE, 0);
+
+    //section header
+    label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(label), "<span font='20' weight='bold'>Personal Details:</span>");
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+
+    label = gtk_label_new("Full Name:");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    //section header
+    label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(label), "<span font='20' weight='bold'>Payment Information:</span>");
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+
+    label = gtk_label_new("Card Number:");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    label = gtk_label_new("Expiration Date:");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    label = gtk_label_new("CVV:");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    //section header
+    label = gtk_label_new(NULL);
+    gtk_label_set_markup(GTK_LABEL(label), "<span font='20' weight='bold'>Shipping:</span>");
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+
+    label = gtk_label_new("Street Address:");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    label = gtk_label_new("City:");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    label = gtk_label_new("State: (XX)");
+    entry = gtk_entry_new();
+
+    gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(box), entry, FALSE, FALSE, 0);
+
+    label = gtk_label_new("Zip:");
     entry = gtk_entry_new();
 
     g_signal_connect(G_OBJECT(entry), "activate", G_CALLBACK(on_entry_activate), (gpointer)destination);
@@ -151,25 +226,4 @@ void get_travel_time(const char *destination) {
 
     curl_global_cleanup();
 }
-
-
-
-
-
-
-/*
-int main(int argc, char *argv[]) {
-    DestinationGUI(&entered_destination);
-
-    // Use the 'entered_destination' variable after the GUI is closed
-    if (entered_destination != NULL) {
-        g_print("Destination after GUI closes: %s\n", entered_destination);
-
-        // Remember to free the memory allocated for entered_destination
-        g_free(entered_destination);
-    }
-
-    return 0;
-}
-*/
 
