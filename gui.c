@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <gtk/gtk.h>
+#include "gtk/gtk.h"
 #include "gui.h"
 #include "inventory.h"
 #include "cart_checkout.h"
